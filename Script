@@ -45,4 +45,4 @@ function ShakeModule.StartShake(intensity, duration)
     shakeActive = true
 end
 
-Return ShakeModule
+return ShakeModule
