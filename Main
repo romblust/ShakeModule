@@ -1,0 +1,50 @@
+--Note this script isn't mine; credits to the rightful owner
+local ShakeModule = {}
+ShakeModule.__index = ShakeModule
+
+local RunService = game:GetService("RunService")
+
+function ShakeModule:StartShake(intensity, duration)
+    local shakeActive = true
+    local shakeStartTime = os.clock()
+    local shakeDuration = duration or 0.8
+    local initialIntensity = intensity or 1
+    local noise = math.noise
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not shakeActive then
+            connection:Disconnect()
+            return
+        end
+
+        local elapsed = os.clock() - shakeStartTime
+        if elapsed >= shakeDuration then
+            shakeActive = false
+            return
+        end
+
+        local progress = elapsed / shakeDuration
+        local currentIntensity = initialIntensity * (1 - progress^2)
+
+        local downwardOffset = Vector3.new(0, -0.2 * currentIntensity, 0)
+        local bounceOffset = Vector3.new(0, 0.1 * currentIntensity * math.sin(progress * 10), 0)
+
+        local timeFactor = os.clock() * 10
+        local shakeX = noise(timeFactor, 0) * currentIntensity * 0.1
+        local shakeY = noise(timeFactor, 100) * currentIntensity * 0.05
+        local shakeZ = noise(timeFactor, 200) * currentIntensity * 0.1
+
+        local rotX = noise(timeFactor, 300) * currentIntensity * 0.05
+        local rotY = noise(timeFactor, 400) * currentIntensity * 0.05
+        local rotZ = noise(timeFactor, 500) * currentIntensity * 0.05
+
+        local offsetPosition = downwardOffset + bounceOffset + Vector3.new(shakeX, shakeY, shakeZ)
+        local offsetRotation = CFrame.Angles(rotX, rotY, rotZ)
+
+        local cam = workspace.CurrentCamera
+        cam.CFrame = cam.CFrame * CFrame.new(offsetPosition) * offsetRotation
+    end)
+end
+
+return setmetatable({}, ShakeModule)
